@@ -1,0 +1,17 @@
+{
+    "name": "nchoquet/php-lib",
+    "authors": [
+        {
+            "name": "Nicolas Choquet",
+            "email": "nicolachoquet06250@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "8.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "PhpLib\\": "lib"
+        }
+    }
+}
