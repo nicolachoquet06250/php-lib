@@ -1,5 +1,6 @@
 {
-    "name": "nchoquet/php-lib",
+    "name": "nicolachoquet06250/php-lib",
+    "description": "simple bibliothèque php pour la gestion du routage et la gestion de l'injection de dépendence",
     "authors": [
         {
             "name": "Nicolas Choquet",
@@ -7,7 +8,7 @@
         }
     ],
     "require": {
-        "php": "8.*"
+        "php": ">=8.0"
     },
     "autoload": {
         "psr-4": {

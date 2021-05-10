@@ -7,14 +7,12 @@ use PhpLib\interfaces\routing\{
 use PhpLib\injection\InjectionContainer;
 use PhpLib\routing\{ Context, Router };
 
-use appExample\errors\HttpError;
 use appExample\routes\FirstController;
-use appExample\errors\http\{ BadRequest, NotFound, InternalError };
+use appExample\errors\http\{ BadRequest, InternalError, NotFound };
 
 define('__ROOT__', realpath(__DIR__ . '../'));
 
 require __DIR__ . '/../vendor/autoload.php';
-
 require __DIR__ . '/vendor/autoload.php';
 
 (new InjectionContainer())
