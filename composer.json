@@ -2,6 +2,7 @@
     "name": "nicolachoquet06250/php-lib",
     "version": "1.0.0",
     "minimum-stability": "stable",
+    "prefer-stable": true,
     "license": "MIT",
     "description": "simple bibliothèque php pour la gestion du routage et la gestion de l'injection de dépendence",
     "authors": [
