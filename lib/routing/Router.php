@@ -14,6 +14,7 @@ use PhpLib\routing\exceptions\NotFoundException;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
+use RuntimeException;
 
 /**
  * Class Router
@@ -33,9 +34,9 @@ class Router implements \PhpLib\interfaces\routing\Router, Runnable
         Route::DELETE
     ];
 
-    const NOT_FOUND = 'not-found';
-    const BAD_REQUEST = 'bad-request';
-    const INTERNAL_ERROR = 'internal-error';
+    public const NOT_FOUND = 'not-found';
+    public const BAD_REQUEST = 'bad-request';
+    public const INTERNAL_ERROR = 'internal-error';
 
     /**
      * @var array<string, array<string, Route>> $routes
@@ -52,7 +53,9 @@ class Router implements \PhpLib\interfaces\routing\Router, Runnable
         string $target,
         string $method = '__construct'
     ): Route {
-        if (!isset(static::$routes[$httpMethod])) static::$routes[$httpMethod] = [];
+        if (!isset(static::$routes[$httpMethod])) {
+	        static::$routes[ $httpMethod ] = [];
+        }
 
         static::$routes[$httpMethod][$uri] = new Route($uri, $target, $method);
 
@@ -71,14 +74,16 @@ class Router implements \PhpLib\interfaces\routing\Router, Runnable
      * @throws Exception
      */
     public static function __callStatic(string $name, array $arguments): Route {
-        if (in_array($name, static::$httpMethods)) {
+        if ( in_array( $name, static::$httpMethods, true ) ) {
             [$uri, $target, $method] = $arguments;
-            if (empty($method)) $method = '__construct';
+            if (empty($method)) {
+	            $method = '__construct';
+            }
 
             return static::route($name, $uri, $target, $method);
         }
 
-        throw new Exception(__CLASS__ . '::' . $name . '() not found');
+        throw new RuntimeException( __CLASS__ . '::' . $name . '() not found');
     }
 
     /**
@@ -89,10 +94,10 @@ class Router implements \PhpLib\interfaces\routing\Router, Runnable
      */
     public static function changeRouteUri(string $old, string $new, string $httpMethod): void {
         if (!isset(static::$routes[$httpMethod])) {
-            throw new Exception('route ' . strtoupper($httpMethod) . ' ' . $old . ' not exists');
+            throw new RuntimeException( 'route ' . strtoupper($httpMethod) . ' ' . $old . ' not exists');
         }
         if (!isset(static::$routes[$httpMethod][$old])) {
-            throw new Exception('route ' . strtoupper($httpMethod) . ' ' . $old . ' not exists');
+            throw new RuntimeException( 'route ' . strtoupper($httpMethod) . ' ' . $old . ' not exists');
         }
 
         $oldRoute = static::$routes[$httpMethod][$old];
@@ -126,7 +131,7 @@ class Router implements \PhpLib\interfaces\routing\Router, Runnable
         if (isset($this->routes()[$currentHttpMethod])) {
             $route =  array_reduce(
                 array_values($this->routes()[$currentHttpMethod]),
-                fn (?Route $r, Route $c) => $c->match() ? $c : $r,
+                static fn (?Route $r, Route $c) => $c->match() ? $c : $r,
                 null
             );
 
@@ -140,7 +145,7 @@ class Router implements \PhpLib\interfaces\routing\Router, Runnable
             if ($httpMethod !== $currentHttpMethod) {
                 $match = array_reduce(
                     array_values($this->routes()[$httpMethod]),
-                    fn(Route|bool $r, Route $c) => $c->match() ? true : $r,
+                    static fn(Route|bool $r, Route $c) => $c->match() ? true : $r,
                     false
                 );
 
@@ -155,9 +160,8 @@ class Router implements \PhpLib\interfaces\routing\Router, Runnable
 
         if ($matches > 0) {
             throw new BadMethodException("uri $currentUri expected $expectedHttpMethod http method, $givenHttpMethod given", 400);
-        } else {
-            throw new NotFoundException("page $currentUri not found", 404);
         }
+        throw new NotFoundException("page $currentUri not found", 404);
     }
 
     protected function resolveError(string $errorName, string $message, int $code, array $stackTrace): ?ErrorRoute {
@@ -175,34 +179,37 @@ class Router implements \PhpLib\interfaces\routing\Router, Runnable
      * @param string $attributeClass
      * @throws ReflectionException
      */
-    protected function resolveRoute(string $route, string $attributeClass) {
+    protected function resolveRoute(string $route, string $attributeClass): void {
         $rc = new ReflectionClass($route);
         $routeAttributes = $rc->getAttributes($attributeClass);
         if (!empty($routeAttributes)) {
-            [$routeAttribute] = $routeAttributes;
-
-            /** @var Attribute $routeAttributeInstance */
-            $routeAttributeInstance = $routeAttribute->newInstance();
-            $routeAttributeInstance->setTarget($route);
-            $routeAttributeInstance->setMethod('__construct');
-            $routeAttributeInstance->process();
+	        foreach ( $routeAttributes as $routeAttribute ) {
+		        /** @var Attribute $routeAttributeInstance */
+		        $routeAttributeInstance = $routeAttribute->newInstance();
+		        $routeAttributeInstance->setTarget($route);
+		        $routeAttributeInstance->setMethod('__construct');
+		        $routeAttributeInstance->process();
+        	}
         }
 
         foreach ($rc->getMethods(ReflectionMethod::IS_PUBLIC) as $rm) {
             $routeAttributes = $rm->getAttributes($attributeClass);
             if (!empty($routeAttributes)) {
-                [$routeAttribute] = $routeAttributes;
-
-                /** @var Attribute $routeAttributeInstance */
-                $routeAttributeInstance = $routeAttribute->newInstance();
-                $routeAttributeInstance->setTarget($route);
-                $routeAttributeInstance->setMethod($rm->getName());
-                $routeAttributeInstance->process();
+	            foreach ( $routeAttributes as $routeAttribute ) {
+		            /** @var Attribute $routeAttributeInstance */
+		            $routeAttributeInstance = $routeAttribute->newInstance();
+		            $routeAttributeInstance->setTarget($route);
+		            $routeAttributeInstance->setMethod($rm->getName());
+		            $routeAttributeInstance->process();
+	            }
             }
         }
     }
 
-    public function run() {
+	/**
+	 * @throws ReflectionException
+	 */
+	public function run(): void {
         try {
             foreach ($this->routesProvider['errors'] as $error) {
                 $this->resolveRoute($error, ErrorRouteAttribute::class);

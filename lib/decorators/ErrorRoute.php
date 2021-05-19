@@ -5,13 +5,17 @@ namespace PhpLib\decorators;
 
 
 use Attribute;
-use \PhpLib\decorators\Attribute as AttributeBase;
+use PhpLib\decorators\Attribute as AttributeBase;
 use PhpLib\routing\Router;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
 
-#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
+#[Attribute(
+	Attribute::TARGET_CLASS
+	| Attribute::TARGET_METHOD
+	| Attribute::IS_REPEATABLE
+)]
 class ErrorRoute extends AttributeBase
 {
     public function __construct(
@@ -27,7 +31,7 @@ class ErrorRoute extends AttributeBase
             $rc = new ReflectionClass($this->target);
 
             foreach ($rc->getMethods(ReflectionMethod::IS_PUBLIC) as $_method) {
-                if (in_array($_method->getName(), Router::$httpMethods)) {
+                if ( in_array( $_method->getName(), Router::$httpMethods, true ) ) {
                     Router::error(
                         errorType: $this->getErrorType(),
                         target: $this->getTarget(),

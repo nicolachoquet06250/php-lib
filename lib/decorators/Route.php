@@ -7,12 +7,17 @@ namespace PhpLib\decorators;
 use Attribute;
 use Exception;
 use PhpLib\routing\Router;
-use \PhpLib\decorators\Attribute as AttributeBase;
+use PhpLib\decorators\Attribute as AttributeBase;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
+use PhpLib\routing\Route as RouteBase;
 
-#[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD)]
+#[Attribute(
+	Attribute::TARGET_CLASS
+	| Attribute::TARGET_METHOD
+	| Attribute::IS_REPEATABLE
+)]
 class Route extends AttributeBase
 {
     public function __construct(
@@ -47,15 +52,15 @@ class Route extends AttributeBase
                         method: $_method->getName()
                     );
 
-                    if (in_array($_method->getName(), [
-                        \PhpLib\routing\Route::POST,
-                        \PhpLib\routing\Route::PUT,
-                        \PhpLib\routing\Route::DELETE
-                    ])) {
+                    if ( in_array( $_method->getName(), [
+	                    RouteBase::POST,
+	                    RouteBase::PUT,
+	                    RouteBase::DELETE
+                    ], true ) ) {
                         $oldUri = $this->getUri();
                         $route->with(
                             param: 'id',
-                            regex: \PhpLib\routing\Route::NUMBER,
+                            regex: RouteBase::NUMBER,
                             add: true,
                             newUri: $newUri
                         );
