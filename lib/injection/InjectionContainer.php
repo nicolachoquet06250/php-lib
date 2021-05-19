@@ -59,7 +59,7 @@ class InjectionContainer implements Container
         }
 
 	    if ($rc->hasMethod($method)) {
-	        $methodParams = array_map(function (ReflectionParameter $p) {
+	        $methodParams = array_map(static function (ReflectionParameter $p) {
 	            if ($p->hasType()) {
 	                $className = $p->getType()->getName();
 	                $injectorContainer = new InjectionContainer();
@@ -68,7 +68,7 @@ class InjectionContainer implements Container
 	                }
 	                $className = $injectorContainer->dependencies()[$className]['class'];
 
-	                $useInjector = array_reduce($p->getDeclaringClass()->getTraits(), fn($r, ReflectionClass $c) => $c->getName() === Injector::class ? true : $r, false);
+	                $useInjector = array_reduce($p->getDeclaringClass()->getTraits(), static fn($r, ReflectionClass $c) => $c->getName() === Injector::class ? true : $r, false);
 
 	                if ($useInjector && in_array('inject', get_class_methods($className))) {
 	                    return $className::inject();
