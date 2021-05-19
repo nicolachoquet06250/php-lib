@@ -12,14 +12,14 @@ use ReflectionParameter;
 
 class ErrorRoute
 {
-    private string $message;
-    private int $code;
-    private array $stackTrace;
+    protected string $message;
+    protected int $code;
+    protected array $stackTrace;
 
     public function __construct(
-        private string $errorType,
-        private string $target,
-        private string $method
+        protected string $errorType,
+        protected string $target,
+        protected string $method
     ) {}
 
     public function setMessage(string $message): ErrorRoute {

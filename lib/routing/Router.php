@@ -40,11 +40,11 @@ class Router implements \PhpLib\interfaces\routing\Router, Runnable
     /**
      * @var array<string, array<string, Route>> $routes
      */
-    private static array $routes = [];
+    protected static array $routes = [];
 
-    private static array $errorRoutes = [];
+    protected static array $errorRoutes = [];
 
-    private array $routesProvider = [];
+    protected array $routesProvider = [];
 
     public static function route(
         string $httpMethod,
@@ -115,7 +115,7 @@ class Router implements \PhpLib\interfaces\routing\Router, Runnable
      * @throws BadMethodException
      * @throws NotFoundException
      */
-    private function resolve(): ?Route {
+    protected function resolve(): ?Route {
         $currentUri = $_SERVER['REQUEST_URI'];
         [$currentUri] = explode('?', $currentUri);
         $currentHttpMethod = strtolower($_SERVER['REQUEST_METHOD']);
@@ -160,7 +160,7 @@ class Router implements \PhpLib\interfaces\routing\Router, Runnable
         }
     }
 
-    private function resolveError(string $errorName, string $message, int $code, array $stackTrace): ?ErrorRoute {
+    protected function resolveError(string $errorName, string $message, int $code, array $stackTrace): ?ErrorRoute {
         if (isset(static::$errorRoutes[$errorName])) {
             return static::$errorRoutes[$errorName]
                 ->setMessage($message)
@@ -175,7 +175,7 @@ class Router implements \PhpLib\interfaces\routing\Router, Runnable
      * @param string $attributeClass
      * @throws ReflectionException
      */
-    private function resolveRoute(string $route, string $attributeClass) {
+    protected function resolveRoute(string $route, string $attributeClass) {
         $rc = new ReflectionClass($route);
         $routeAttributes = $rc->getAttributes($attributeClass);
         if (!empty($routeAttributes)) {

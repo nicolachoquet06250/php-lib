@@ -15,7 +15,7 @@ class InjectionContainer implements Container
 {
     use ArrayCleaner;
 
-    private static array $dependencies = [];
+    protected static array $dependencies = [];
 
     public function addDependencies(array $dependencies): InjectionContainer {
         static::$dependencies = $dependencies;

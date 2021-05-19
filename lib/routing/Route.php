@@ -24,14 +24,14 @@ class Route
     const STRING = '([^\/]+)';
     const SLOT = '([a-zA-Z0-9\-\_]+)';
 
-    private array $params = [];
+    protected array $params = [];
 
-    private array $paramsMatches = [];
+    protected array $paramsMatches = [];
 
     public function __construct(
-        private string $uri,
-        private string $target,
-        private string $method
+        protected string $uri,
+        protected string $target,
+        protected string $method
     ) {}
 
     public function with(string $param, string $regex, bool $add = false, &$newUri = ''): Route {

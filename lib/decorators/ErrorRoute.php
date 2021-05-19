@@ -15,7 +15,7 @@ use ReflectionMethod;
 class ErrorRoute extends AttributeBase
 {
     public function __construct(
-        private string $errorType
+        protected string $errorType
     ) {}
 
     /**

@@ -6,7 +6,7 @@ namespace PhpLib;
 
 trait Singleton
 {
-    private static ?self $instance = null;
+    protected static ?self $instance = null;
 
     public final static function getInstance(...$params): ?self {
         if (is_null(static::$instance)) {

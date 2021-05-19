@@ -16,9 +16,9 @@ use ReflectionMethod;
 class Route extends AttributeBase
 {
     public function __construct(
-        private string $uri,
-        private ?string $httpMethod = null,
-        private array $params = []
+        protected string $uri,
+        protected ?string $httpMethod = null,
+        protected array $params = []
     ) {}
 
     public function getHttpMethod(): ?string {
