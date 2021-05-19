@@ -23,10 +23,12 @@ class InjectionContainer implements Container
         return $this;
     }
 
-    public function use(string $interface, string $class): Container {
-        static::$dependencies[$interface] = [
-            'class' => $class
-        ];
+    public function use(string $interface, string|callable $class): Container {
+    	if (is_callable($class)) {
+		    static::$dependencies[ $interface ] = [ 'callback' => $class ];
+	    } else {
+		    static::$dependencies[ $interface ] = [ 'class' => $class ];
+	    }
 
         return $this;
     }
@@ -43,48 +45,49 @@ class InjectionContainer implements Container
         $rc = new ReflectionClass($class);
 
         if (is_string($class)) {
-            $useInjector = array_reduce($rc->getTraits(), fn($r, ReflectionClass $c) => $c->getName() === Injector::class ? true : $r, false);
+            $useInjector = array_reduce($rc->getTraits(), static fn($r, ReflectionClass $c) => $c->getName() === Injector::class ? true : $r, false);
             if ($useInjector) {
                 return $class::inject(...$params);
-            } else {
-                $useSingleton = array_reduce($rc->getTraits(), fn($r, ReflectionClass $c) => $c->getName() === Singleton::class ? true : $r, false);
-                if ($useSingleton) {
-                    return $class::getInstance(...$params);
-                } else {
-                    return new $class(...$params);
-                }
             }
-        } else {
-            if ($rc->hasMethod($method)) {
-                $methodParams = array_map(function (ReflectionParameter $p) {
-                    if ($p->hasType()) {
-                        $className = $p->getType()->getName();
-                        $injectorContainer = new InjectionContainer();
-                        if (!isset($injectorContainer->dependencies()[$className])) {
-                            return null;
-                        }
-                        $className = $injectorContainer->dependencies()[$className]['class'];
 
-                        $useInjector = array_reduce($p->getDeclaringClass()->getTraits(), fn($r, ReflectionClass $c) => $c->getName() === Injector::class ? true : $r, false);
+	        $useSingleton = array_reduce($rc->getTraits(), static fn($r, ReflectionClass $c) => $c->getName() === Singleton::class ? true : $r, false);
+	        if ($useSingleton) {
+	            return $class::getInstance(...$params);
+	        }
 
-                        if ($useInjector && in_array('inject', get_class_methods($className))) {
-                            return $className::inject();
-                        }
-                        return new $className();
-                    }
-                    return null;
-                }, $rc->getMethod($method)->getParameters());
-
-                $this->cleanArray($methodParams);
-                if (count($methodParams) === 1 && $methodParams[0] === null) {
-                    $this->cleanArray($methodParams, both: true);
-                }
-                $this->cleanArray($params, true);
-
-                return $class->$method(...$methodParams, ...$params);
-            }
+	        return new $class(...$params);
         }
-        return null;
+
+	    if ($rc->hasMethod($method)) {
+	        $methodParams = array_map(function (ReflectionParameter $p) {
+	            if ($p->hasType()) {
+	                $className = $p->getType()->getName();
+	                $injectorContainer = new InjectionContainer();
+	                if (!isset($injectorContainer->dependencies()[$className])) {
+	                    return null;
+	                }
+	                $className = $injectorContainer->dependencies()[$className]['class'];
+
+	                $useInjector = array_reduce($p->getDeclaringClass()->getTraits(), fn($r, ReflectionClass $c) => $c->getName() === Injector::class ? true : $r, false);
+
+	                if ($useInjector && in_array('inject', get_class_methods($className))) {
+	                    return $className::inject();
+	                }
+	                return new $className();
+	            }
+	            return null;
+	        }, $rc->getMethod($method)->getParameters());
+
+	        $this->cleanArray($methodParams);
+	        if (count($methodParams) === 1 && $methodParams[0] === null) {
+	            $this->cleanArray($methodParams, both: true);
+	        }
+	        $this->cleanArray($params, true);
+
+	        return $class->$method(...$methodParams, ...$params);
+	    }
+
+	    return null;
     }
 
     public function dependencies(): array {
