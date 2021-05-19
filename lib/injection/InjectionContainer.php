@@ -81,7 +81,7 @@ class InjectionContainer implements Container
                 }
                 $this->cleanArray($params, true);
 
-                $class->$method(...$methodParams, ...$params);
+                return $class->$method(...$methodParams, ...$params);
             }
         }
         return null;
