@@ -15,14 +15,14 @@ class Route
 {
     use ArrayCleaner;
 
-    const GET       = 'get';
-    const POST      = 'post';
-    const PUT       = 'put';
-    const DELETE    = 'delete';
+    public const GET       = 'get';
+    public const POST      = 'post';
+    public const PUT       = 'put';
+    public const DELETE    = 'delete';
 
-    const NUMBER = '([0-9]+)';
-    const STRING = '([^\/]+)';
-    const SLOT = '([a-zA-Z0-9\-\_]+)';
+    public const NUMBER = '([0-9]+)';
+    public const STRING = '([^\/]+)';
+    public const SLOT = '([a-zA-Z0-9\-\_]+)';
 
     protected array $params = [];
 
@@ -83,7 +83,7 @@ class Route
             array_shift($matches);
 
             foreach ($matches as $k => $v) {
-                if (in_array($k, array_keys($this->paramsMatches))) {
+                if ( array_key_exists( $k, $this->paramsMatches ) ) {
                     $this->addParamMatch($k, $v);
                 }
             }
@@ -96,7 +96,7 @@ class Route
      * @throws ReflectionException
      * @throws Exception
      */
-    public function resolve() {
+    public function resolve(): array|string|null {
         $class = $this->getTarget();
         $rc = new ReflectionClass($class);
 
@@ -105,7 +105,7 @@ class Route
 
         $rm = $rc->getMethod($this->getMethod());
         $methodParams = array_map(function (ReflectionParameter $c) {
-            if (!in_array($c->getName(), array_keys($this->paramsMatches))) {
+            if (! array_key_exists( $c->getName(), $this->paramsMatches ) ) {
                 if (!$c->getType()->allowsNull()) {
                     throw new Exception($this->getTarget() . '::' . $this->getMethod() . '() param ' . $c->getName() . ' expected ' . $c->getReturnType() . ' but null given');
                 }
@@ -117,6 +117,6 @@ class Route
 
         $this->cleanArray($methodParams);
 
-        $injectionContainer->inject($controller, $this->getMethod(), params: $methodParams);
+        return $injectionContainer->inject($controller, $this->getMethod(), params: $methodParams);
     }
 }
