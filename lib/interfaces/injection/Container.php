@@ -12,5 +12,5 @@ interface Container
      */
     public function addDependencies(array $dependencies): Container;
 
-    public function use(string $interface, string $class): Container;
+    public function use(string $interface, string|callable $class): Container;
 }
